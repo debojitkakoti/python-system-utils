@@ -1,0 +1,29 @@
+#!/usr/bin/python3
+# This script takes input from stdin
+# (but it must be a regular file, to support mapping it),
+# and writes the result to stdout.
+
+search = b'<unk>'
+replace = b'<raw_unk>'
+
+
+import sys
+import os
+import mmap
+
+# sys.stdout requires str, but we want to write bytes
+out_bytes = sys.stdout.buffer
+
+mem = mmap.mmap(sys.stdin.fileno(), 0, access=mmap.ACCESS_READ)
+i = mem.find(search)
+if i < 0:
+    sys.exit("Search string not found")
+
+# mmap object subscripts to bytes (making a copy)
+# memoryview object subscripts to a memoryview object
+# (it implements the buffer protocol).
+view = memoryview(mem)
+
+out_bytes.write(view[:i])
+out_bytes.write(replace)
+out_bytes.write(view[i+len(search):])
